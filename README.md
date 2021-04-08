@@ -2,7 +2,9 @@
 
 Punt is a developer friendly queue for processing background jobs.
 
-> as an idiom, “to punt” means to defer action, or to pass responsibility off to someone else.
+> As an idiom, “to punt” means to defer action, or to pass responsibility off to someone else.
+
+_- Probably the least trustworthy dictionary ever_
 
 ## Installation
 
@@ -28,7 +30,7 @@ $ yarn add @punt/node
 import punt, { worker } from '@punt/node'
 
 worker('sayHello', async ({ name }) => {
-  console.log('Hello, ', name)
+  console.log('Hello,', name)
 })
 
 punt('sayHello', { name: 'Punt' })
