@@ -3,8 +3,8 @@
 Punt is a developer friendly queue for processing background jobs.
 
 > As an idiom, “to punt” means to defer action, or to pass responsibility off to someone else.
-
-_- Probably the least trustworthy dictionary ever_
+>
+> _- Probably the least trustworthy dictionary ever_
 
 ## Installation
 
