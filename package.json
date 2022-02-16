@@ -1,5 +1,5 @@
 {
-  "name": "node",
+  "name": "punt-node",
   "version": "1.0.0",
   "description": "Punt is a developer friendly queue for processing background jobs.",
   "main": "index.js",
@@ -11,8 +11,8 @@
     "url": "git+https://github.com/puntWork/node.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Andre Oliveira",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/puntWork/node/issues"
   },
