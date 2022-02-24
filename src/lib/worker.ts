@@ -1,4 +1,5 @@
 import Redis from 'ioredis'
+import { Message } from '../types'
 
 const redisUrl = process.env.REDIS_URL || undefined
 
@@ -55,13 +56,6 @@ const deadletter = async (message: Message): Promise<void> => {
   )
 }
 
-interface Message {
-  job: string
-  data: any
-  retryCount: number
-  lastAttemptedAt: number | null
-}
-
 export const errorHandler = async (
   error: Error,
   opts: WorkerOpts,
@@ -72,15 +66,16 @@ export const errorHandler = async (
 
   if (message == null) return
 
-  if (message.retryCount + 1 > maxRetries) {
-    await deadletter(message)
-    return
-  }
-
   const updatedMessage = {
     ...message,
     retryCount: message.retryCount + 1,
     lastAttemptedAt: ts,
+    lastError: error.message,
+  }
+
+  if (updatedMessage.retryCount >= maxRetries) {
+    await deadletter(updatedMessage)
+    return
   }
 
   const nextExecution = exponentialBackoff(ts, updatedMessage.retryCount)

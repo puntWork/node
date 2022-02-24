@@ -138,6 +138,7 @@ describe('handling errors', () => {
     retryCount: 2,
     job: 'errorjob',
     lastAttemptedAt: Date.now() - 8_000,
+    lastError: 'An error occurred',
   }
 
   const errorFn = jest.fn(() => {
@@ -225,6 +226,21 @@ describe('handling errors', () => {
     const message = JSON.parse(jsonEncodedMessage)
 
     expect(message.lastAttemptedAt).toEqual(currentTimestamp)
+  })
+
+  test('sets last error', async () => {
+    await listenForMessages({ recovery: false })
+
+    const [jsonEncodedMessage] = await redis.zrange(
+      '__punt__:__retry_set__',
+      0,
+      -1,
+      'WITHSCORES'
+    )
+
+    const message = JSON.parse(jsonEncodedMessage)
+
+    expect(message.lastError).toEqual('job failed')
   })
 
   test('moves the message to the deadletter stream after retries are exhausted', async () => {
