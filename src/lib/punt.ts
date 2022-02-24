@@ -10,8 +10,17 @@ export const worker = async (topic: string, handler: workerHandler) => {
   handler(JSON.parse(message))
 }
 
-const punt = async (topic: string, message: unknown): Promise<void> => {
-  await redis.rpush(`queue:${topic}`, JSON.stringify(message))
+const punt = async (job: string, message: unknown): Promise<string> => {
+  let messageId = await redis.xadd(
+    '__punt__:__default__',
+    '*',
+    'job',
+    job,
+    'message',
+    JSON.stringify(message)
+  )
+
+  return messageId
 }
 
 export default punt
