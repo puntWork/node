@@ -4,7 +4,8 @@
   "description": "Punt is a developer friendly queue for processing background jobs.",
   "main": "index.js",
   "scripts": {
-    "test": "jest --forceExit --runInBand"
+    "test": "jest --forceExit --runInBand",
+    "test:watch": "jest --watch --forceExit --runInBand"
   },
   "repository": {
     "type": "git",
