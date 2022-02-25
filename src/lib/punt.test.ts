@@ -29,6 +29,30 @@ describe('punt', () => {
     expect(topicLabel).toBe('job')
     expect(topicName).toBe('testEnqueue')
     expect(messageLabel).toBe('message')
-    expect(decodedMessage.id).toBe(uuid)
+    expect(decodedMessage.data.id).toBe(uuid)
+  })
+
+  test('setting default message attributes', async () => {
+    let uuid = randomUUID()
+    await punt('testEnqueue', { id: uuid })
+
+    let [[_stream, [message]]] = await redis.xread(
+      'STREAMS',
+      '__punt__:__default__',
+      0
+    )
+
+    let [
+      _messageId,
+      [_topicLabel, _topicName, _messageLabel, jsonEncodedMessage],
+    ] = message
+
+    let decodedMessage = JSON.parse(jsonEncodedMessage)
+
+    expect(decodedMessage.data.id).toBe(uuid)
+    expect(decodedMessage.job).toBe('testEnqueue')
+    expect(decodedMessage.retryCount).toBe(0)
+    expect(decodedMessage.lastAttemptedAt).toBeNull
+    expect(decodedMessage.lastError).toBeNull
   })
 })

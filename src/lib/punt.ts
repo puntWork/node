@@ -1,16 +1,17 @@
 import Redis from 'ioredis'
+import { Message } from '../types'
 
 const redis = new Redis()
 
-type workerHandler = (message: unknown) => void
-export const worker = async (topic: string, handler: workerHandler) => {
-  let message
+const punt = async (job: string, data: unknown): Promise<string> => {
+  let message: Message = {
+    data,
+    job,
+    retryCount: 0,
+    lastAttemptedAt: null,
+    lastError: null,
+  }
 
-  message = await redis.lpop(`queue:${topic}`)
-  handler(JSON.parse(message))
-}
-
-const punt = async (job: string, message: unknown): Promise<string> => {
   let messageId = await redis.xadd(
     '__punt__:__default__',
     '*',
