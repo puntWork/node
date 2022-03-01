@@ -19,6 +19,14 @@
   "bugs": {
     "url": "https://github.com/puntWork/node/issues"
   },
+  "main": "dist/index.js",
+  "bin": {
+    "punt-worker": "./bin/worker"
+  },
+  "files": [
+    "dist/**/*",
+    "bin/*"
+  ],
   "homepage": "https://github.com/puntWork/node#readme",
   "devDependencies": {
     "@types/ioredis": "^4.22.3",
