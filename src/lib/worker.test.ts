@@ -328,7 +328,7 @@ describe('retryMonitor', () => {
 
     await retryMonitor({ ts: currentTime })
 
-    let result = await redis.xread(
+    const result = await redis.xread(
       'COUNT',
       1,
       'STREAMS',
@@ -338,7 +338,7 @@ describe('retryMonitor', () => {
 
     expect(result).toBeNull()
 
-    let retrySet = await redis.zrange(
+    const retrySet = await redis.zrange(
       '__punt__:__retryset__',
       0,
       -1,

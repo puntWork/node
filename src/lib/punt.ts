@@ -4,7 +4,7 @@ import { Message } from '../types'
 const redis = new Redis()
 
 const punt = async (job: string, data: unknown): Promise<string> => {
-  let message: Message = {
+  const message: Message = {
     data,
     job,
     retryCount: 0,
@@ -12,7 +12,7 @@ const punt = async (job: string, data: unknown): Promise<string> => {
     lastError: null,
   }
 
-  let messageId = await redis.xadd(
+  const messageId = await redis.xadd(
     '__punt__:__default__',
     '*',
     'job',

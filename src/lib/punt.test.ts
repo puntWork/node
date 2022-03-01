@@ -11,19 +11,19 @@ afterEach(async () => {
 
 describe('punt', () => {
   test('enqueuing messages to punt', async () => {
-    let uuid = randomUUID()
-    let enqueuedMessageId = await punt('testEnqueue', { id: uuid })
+    const uuid = randomUUID()
+    const enqueuedMessageId = await punt('testEnqueue', { id: uuid })
 
-    let [[_stream, [message]]] = await redis.xread(
+    const [[_stream, [message]]] = await redis.xread(
       'STREAMS',
       '__punt__:__default__',
       0
     )
 
-    let [messageId, [topicLabel, topicName, messageLabel, jsonEncodedMessage]] =
+    const [messageId, [topicLabel, topicName, messageLabel, jsonEncodedMessage]] =
       message
 
-    let decodedMessage = JSON.parse(jsonEncodedMessage)
+    const decodedMessage = JSON.parse(jsonEncodedMessage)
 
     expect(messageId).toBe(enqueuedMessageId)
     expect(topicLabel).toBe('job')
@@ -33,21 +33,21 @@ describe('punt', () => {
   })
 
   test('setting default message attributes', async () => {
-    let uuid = randomUUID()
+    const uuid = randomUUID()
     await punt('testEnqueue', { id: uuid })
 
-    let [[_stream, [message]]] = await redis.xread(
+    const [[_stream, [message]]] = await redis.xread(
       'STREAMS',
       '__punt__:__default__',
       0
     )
 
-    let [
+    const [
       _messageId,
       [_topicLabel, _topicName, _messageLabel, jsonEncodedMessage],
     ] = message
 
-    let decodedMessage = JSON.parse(jsonEncodedMessage)
+    const decodedMessage = JSON.parse(jsonEncodedMessage)
 
     expect(decodedMessage.data.id).toBe(uuid)
     expect(decodedMessage.job).toBe('testEnqueue')

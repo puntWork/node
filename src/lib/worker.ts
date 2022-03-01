@@ -15,12 +15,12 @@ const opts =
 
 export const redis = new Redis(redisUrl, opts)
 
-type CallbackFn = (message: any) => void
+type CallbackFn = (message: unknown) => void
 interface HandlerMap {
   [key: string]: CallbackFn
 }
 
-let handlers: HandlerMap = {}
+const handlers: HandlerMap = {}
 
 export const worker = (message: string, cb: CallbackFn): void => {
   console.log(`Registering callback for ${message}.`)
@@ -244,6 +244,10 @@ export const startUp = async () => {
 }
 
 const main = async (opts: WorkerOpts = {}) => {
+  // Run the retryMonitor every 1 sec
+  setInterval(retryMonitor, 1000)
+
+  // Run message listening indefinitely
   while (true) {
     await listenForMessages({ recovery: false }, opts)
   }
