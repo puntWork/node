@@ -3,7 +3,7 @@ import { Message } from '../types'
 
 const redisUrl = process.env.REDIS_URL || undefined
 
-const opts =
+const redisOpts =
   process.env.NODE_ENV === 'production'
     ? {
         tls: {
@@ -13,7 +13,7 @@ const opts =
       }
     : {}
 
-export const redis = new Redis(redisUrl, opts)
+let redis: Redis.Redis
 
 type CallbackFn = (message: unknown) => void
 interface HandlerMap {
@@ -243,15 +243,21 @@ export const startUp = async () => {
   }
 }
 
+let isShuttingDown = false
+
 const main = async (opts: WorkerOpts = {}) => {
+  redis = new Redis(redisUrl, redisOpts)
+
   // Run the retryMonitor every 1 sec
   setInterval(retryMonitor, 1000)
 
   // Listen for messages in an infinite loop. This will be replaced with a condition
   // for graceful shutdown.
-  while (true) {
+  while (!isShuttingDown) {
     await listenForMessages({ recovery: false }, opts)
   }
+
+  redis.disconnect()
 }
 
 export default main
