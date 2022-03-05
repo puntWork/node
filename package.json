@@ -7,19 +7,29 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "jest --forceExit --runInBand",
-    "test:watch": "jest --watch --forceExit --runInBand"
+    "test:watch": "jest --watch --forceExit --runInBand",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test && npm run lint"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/puntWork/node.git"
   },
-  "keywords": [],
+  "keywords": [
+    "background",
+    "jobs",
+    "workers",
+    "pubsub",
+    "redis",
+    "streams"
+  ],
   "author": "Andre Oliveira",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/puntWork/node/issues"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "punt-worker": "./bin/worker"
   },
