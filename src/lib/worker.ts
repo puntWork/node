@@ -227,10 +227,14 @@ export const startUp = async () => {
       '$',
       'MKSTREAM'
     )
-  } catch (error: any) {
-    if (!error.message.includes('BUSYGROUP')) {
-      // re-throw if error isn't a BUSYGROUP error, which is the redis error indicating the group
-      // and stream already exist. If we do find a BUSYGROUP, we just ignore it.
+  } catch (error) {
+    if (error instanceof Error) {
+      if (!error.message.includes('BUSYGROUP')) {
+        // re-throw if error isn't a BUSYGROUP error, which is the redis error indicating the group
+        // and stream already exist. If we do find a BUSYGROUP, we just ignore it.
+        throw error
+      }
+    } else {
       throw error
     }
   }
