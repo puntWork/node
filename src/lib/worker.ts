@@ -13,7 +13,7 @@ const redisOpts =
       }
     : {}
 
-let redis: Redis.Redis
+const redis = new Redis(redisUrl, redisOpts)
 
 type CallbackFn = (message: unknown) => void
 interface HandlerMap {
@@ -246,8 +246,6 @@ export const startUp = async () => {
 let isShuttingDown = false
 
 const main = async (opts: WorkerOpts = {}) => {
-  redis = new Redis(redisUrl, redisOpts)
-
   // Run the retryMonitor every 1 sec
   setInterval(retryMonitor, 1000)
 
@@ -258,6 +256,10 @@ const main = async (opts: WorkerOpts = {}) => {
   }
 
   redis.disconnect()
+}
+
+export const shutdown = () => {
+  isShuttingDown = true
 }
 
 export default main

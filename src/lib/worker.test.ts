@@ -6,13 +6,6 @@ import Redis from 'ioredis'
 const redis = new Redis()
 const myfn = jest.fn()
 
-/**
- * [X] Handle creating the stream if it doesn't exist
- * [X] Handle creating the group if it doesn't exist
- * [X] Handle crash recovery
- * [] Create nack (sends messages back into the queue)
- */
-
 afterEach(async () => {
   await redis.flushdb()
 })
