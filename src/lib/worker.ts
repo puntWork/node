@@ -247,7 +247,8 @@ const main = async (opts: WorkerOpts = {}) => {
   // Run the retryMonitor every 1 sec
   setInterval(retryMonitor, 1000)
 
-  // Run message listening indefinitely
+  // Listen for messages in an infinite loop. This will be replaced with a condition
+  // for graceful shutdown.
   while (true) {
     await listenForMessages({ recovery: false }, opts)
   }
