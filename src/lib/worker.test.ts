@@ -65,7 +65,7 @@ describe('startUp', () => {
 
     it('re-process pending (received but not acked) messages', async () => {
       // pulls the message
-      const [entry] = await redis.xreadgroup(
+      await redis.xreadgroup(
         'GROUP',
         'workers',
         'worker',
@@ -76,7 +76,7 @@ describe('startUp', () => {
         '>'
       )
 
-      const response = await listenForMessages({ recovery: true })
+      await listenForMessages({ recovery: true })
 
       expect(myfn).toBeCalledWith({ id: 1 })
     })
