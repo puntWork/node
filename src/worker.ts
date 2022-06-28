@@ -1,3 +1,3 @@
-import main from './lib/worker'
+import main, { startUp } from './lib/worker'
 
-main()
+startUp().then(() => main())
