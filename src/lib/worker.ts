@@ -15,7 +15,7 @@ const redisOpts =
 
 const redis = new Redis(redisUrl, redisOpts)
 
-type CallbackFn = (message: unknown) => void
+type CallbackFn = (message: any) => void
 interface HandlerMap {
   [key: string]: CallbackFn
 }
