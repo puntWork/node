@@ -1,9 +1,11 @@
 import main, { startUp } from './lib/worker'
+import path from 'path'
 
 const sourcePath = process.argv[2]
 
 const loadSource = async () => {
-  const source = await import(sourcePath)
+  const resolvedPath = path.resolve(sourcePath)
+  const source = await import(resolvedPath)
   return source.default
 }
 
