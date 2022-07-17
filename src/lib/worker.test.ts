@@ -1,4 +1,11 @@
-import { listenForMessages, retryMonitor, startUp } from './worker'
+import main, {
+  listenForMessages,
+  retryMonitor,
+  shutdown,
+  startUp,
+  redis as workerRedis,
+  isTerminating,
+} from './worker'
 import { worker } from './worker'
 
 import Redis from 'ioredis'
@@ -345,5 +352,15 @@ describe('retryMonitor', () => {
     const result = await retryMonitor()
 
     expect(result).toBeUndefined()
+  })
+})
+
+describe('shutting down', () => {
+  worker('myjob', myfn)
+
+  test('sets the termination flag', () => {
+    shutdown()
+
+    expect(isTerminating()).toBe(true)
   })
 })

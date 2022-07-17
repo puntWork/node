@@ -13,7 +13,7 @@ const redisOpts =
       }
     : {}
 
-const redis = new Redis(redisUrl, redisOpts)
+export const redis = new Redis(redisUrl, redisOpts)
 
 type CallbackFn = (message: any) => void
 interface HandlerMap {
@@ -96,7 +96,7 @@ export const listenForMessages = async (
   args: listenArgs,
   opts: WorkerOpts = {}
 ): Promise<string | null> => {
-  const timeout = opts.timeout ?? 0
+  const timeout = opts.timeout ?? 5_000
   const verbose = process.env.VERBOSE ?? false
   const topic = opts.topic ?? '__default__'
   const group = opts.group ?? 'workers'
@@ -136,12 +136,14 @@ export const listenForMessages = async (
     )
   }
 
+  if (response == null) {
+    return null
+  }
+
   const [topicName, messages] = response[0]
 
   if (messages.length === 0) {
     // No message found, return null to signal there are no messages in the queue.
-    // This is only used in recovery mode, when messages are read from the history
-    // of pending messages.
     return null
   }
 
@@ -253,17 +255,20 @@ const main = async (opts: WorkerOpts = {}) => {
   // Run the retryMonitor every 1 sec
   setInterval(retryMonitor, 1000)
 
-  // Listen for messages in an infinite loop. This will be replaced with a condition
-  // for graceful shutdown.
   while (!isShuttingDown) {
     await listenForMessages({ recovery: false }, opts)
   }
 
   redis.disconnect()
+
+  console.log('Shutdown complete.')
 }
 
 export const shutdown = () => {
+  console.log('Waiting for current job to finish...')
   isShuttingDown = true
 }
+
+export const isTerminating = () => isShuttingDown
 
 export default main
