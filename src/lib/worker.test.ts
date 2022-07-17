@@ -1,9 +1,8 @@
-import main, {
+import {
   listenForMessages,
   retryMonitor,
   shutdown,
   startUp,
-  redis as workerRedis,
   isTerminating,
 } from './worker'
 import { worker } from './worker'
