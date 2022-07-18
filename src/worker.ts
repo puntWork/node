@@ -1,24 +1,17 @@
 import main, { isTerminating, shutdown, startUp } from './lib/worker'
 import path from 'path'
 
-const sourcePath = process.argv[2]
-
-const loadSource = async () => {
+const loadSource = async (sourcePath: string) => {
   const resolvedPath = path.resolve(sourcePath)
   const source = await import(resolvedPath)
   return source.default
 }
 
-console.log('Worker started with PID:', process.pid)
-
-loadSource()
-  .then(() => startUp())
-  .then(() => main())
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+export const run = async (sourcePath: string) => {
+  await loadSource(sourcePath)
+  await startUp()
+  await main()
+}
 
 // handler for SIGINT, received when the user presses C-c
 process.on('SIGINT', () => {
