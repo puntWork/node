@@ -1,5 +1,6 @@
-import { Command } from 'commander'
-import { run } from './worker'
+const { Command } = require('commander')
+const { version } = require('./package.json')
+const { run } = require('./dist/worker')
 
 const program = new Command()
 
@@ -8,14 +9,19 @@ program
   .description(
     'punt-cli is a command line tool for managing background workers'
   )
-  .version('1.0.2')
+  .version(version)
 
 program
   .command('worker')
   .description('start a background worker')
   .argument('[entrypoint]', 'entrypoint file where all workers are loaded')
-  .action(async (entrypoint) => {
+  .option('-t, --ts', 'use typescript')
+  .action(async (entrypoint, options) => {
     console.log('Worker started with PID:', process.pid)
+
+    if (options.ts) {
+      require('ts-node').register()
+    }
 
     try {
       await run(entrypoint)
