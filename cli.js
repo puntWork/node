@@ -19,7 +19,7 @@ program
   .action(async (entrypoint, options) => {
     console.log('Worker started with PID:', process.pid)
 
-    if (options.ts) {
+    if (options.ts || entrypoint.endsWith('.ts')) {
       require('ts-node').register()
     }
 
