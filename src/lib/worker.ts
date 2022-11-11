@@ -18,6 +18,7 @@ const redisOpts =
 
 export const redis = new Redis(redisUrl, redisOpts)
 
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CallbackFn = (message: any) => void
 interface HandlerMap {
   [key: string]: CallbackFn
@@ -258,10 +259,12 @@ const main = async (opts: WorkerOpts = {}) => {
 
   redis.disconnect()
 
+  // eslint-disable-next-line no-console
   console.log('Shutdown complete.')
 }
 
 export const shutdown = () => {
+  // eslint-disable-next-line no-console
   console.log('Waiting for current job to finish...')
   isShuttingDown = true
 }

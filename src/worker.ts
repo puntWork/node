@@ -18,6 +18,7 @@ export const run = async (sourcePath: string, opts: WorkerOpts = {}) => {
 process.on('SIGINT', () => {
   if (isTerminating()) return
 
+  // eslint-disable-next-line no-console
   console.log('\nWorker received SIGINT, shutting down.')
   shutdown()
 })
@@ -26,6 +27,7 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
   if (isTerminating()) return
 
+  // eslint-disable-next-line no-console
   console.log('\nWorker received SIGINT, shutting down.')
   shutdown()
 })
