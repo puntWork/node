@@ -66,6 +66,24 @@ npx punt worker [entrypoint] <options>
 > npm install --save-dev ts-node
 > ```
 
+- `-v, --verbose`: Verbose output. This option enables debug logs.
+
+### Verbose
+
+To debug your workers, you can run them in verbose mode. This will print out the logs of your workers to the console.
+
+You can either start the worker with the `DEBUG` environment variable set to `punt:*` or with the `--verbose` (or `-v`) option:
+
+```
+DEBUG=punt:* npx punt worker entrypoint.js
+```
+
+or
+
+```
+npx punt worker entrypoint.js -v
+```
+
 ## Getting Help
 
 If you have a question, please create a topic in [Discussions](https://github.com/puntWork/node/discussions).

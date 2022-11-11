@@ -1,5 +1,6 @@
 import main, { isTerminating, shutdown, startUp } from './lib/worker'
 import path from 'path'
+import { WorkerOpts } from './types'
 
 const loadSource = async (sourcePath: string) => {
   const resolvedPath = path.resolve(sourcePath)
@@ -7,10 +8,10 @@ const loadSource = async (sourcePath: string) => {
   return source.default
 }
 
-export const run = async (sourcePath: string) => {
+export const run = async (sourcePath: string, opts: WorkerOpts = {}) => {
   await loadSource(sourcePath)
   await startUp()
-  await main()
+  await main(opts)
 }
 
 // handler for SIGINT, received when the user presses C-c

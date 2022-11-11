@@ -16,6 +16,7 @@ program
   .description('start a background worker')
   .argument('[entrypoint]', 'entrypoint file where all workers are loaded')
   .option('-t, --ts', 'use typescript')
+  .option('-v, --verbose', 'turn on verbose logging')
   .action(async (entrypoint, options) => {
     console.log('Worker started with PID:', process.pid)
 
@@ -24,7 +25,9 @@ program
     }
 
     try {
-      await run(entrypoint)
+      await run(entrypoint, {
+        verbose: options.verbose,
+      })
       process.exit(0)
     } catch (error) {
       console.error(error)

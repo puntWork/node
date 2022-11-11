@@ -1,5 +1,8 @@
 import Redis from 'ioredis'
-import { Message } from '../types'
+import { Message, WorkerOpts } from '../types'
+import Debug from 'debug'
+
+let debug = Debug('punt:worker')
 
 const redisUrl = process.env.REDIS_URL || undefined
 
@@ -23,18 +26,8 @@ interface HandlerMap {
 const handlers: HandlerMap = {}
 
 export const worker = (message: string, cb: CallbackFn): void => {
-  console.log(`Registering callback for ${message}.`)
+  debug(`Registering callback for ${message}.`)
   handlers[message] = cb
-}
-
-interface WorkerOpts {
-  timeout?: number
-  verbose?: boolean
-  topic?: string
-  worker?: string
-  group?: string
-  ts?: number
-  maxRetries?: number
 }
 
 const exponentialBackoff = (
@@ -97,16 +90,13 @@ export const listenForMessages = async (
   opts: WorkerOpts = {}
 ): Promise<string | null> => {
   const timeout = opts.timeout ?? 5_000
-  const verbose = process.env.VERBOSE ?? false
   const topic = opts.topic ?? '__default__'
   const group = opts.group ?? 'workers'
   const workerId = opts.worker ?? 'worker'
 
   let message: Message | null = null
 
-  if (verbose) {
-    console.log(`Listening for messages on the ${topic} topic.`)
-  }
+  debug(`Listening for messages on the ${topic} topic.`)
 
   let response
 
@@ -150,11 +140,7 @@ export const listenForMessages = async (
   const [messageId, [_jobAttrName, job, _messageAttrName, jsonEncodedMessage]] =
     messages[0]
 
-  if (verbose) {
-    console.log(
-      `Processing message ID=${messageId} received on topic ${topicName}.`
-    )
-  }
+  debug(`Processing message ID=${messageId} received on topic ${topicName}.`)
 
   message = JSON.parse(jsonEncodedMessage)
 
@@ -183,6 +169,7 @@ export const listenForMessages = async (
 interface RetryMonitorArgs {
   ts?: number
 }
+
 export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
   const currentTime = opts.ts ?? Date.now()
 
@@ -252,6 +239,16 @@ export const startUp = async () => {
 let isShuttingDown = false
 
 const main = async (opts: WorkerOpts = {}) => {
+  // If we receive a name for this worker, replace the debugger instance to use it.
+  if (opts.worker != null) {
+    debug = Debug(`punt:${opts.worker}`)
+  }
+
+  // Set verbose mode if the -v flag is passed
+  if (opts.verbose) {
+    Debug.enable('punt:*')
+  }
+
   // Run the retryMonitor every 1 sec
   setInterval(retryMonitor, 1000)
 
