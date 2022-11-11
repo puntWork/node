@@ -66,7 +66,7 @@ npx punt worker [entrypoint] <options>
 > npm install --save-dev ts-node
 > ```
 
-### Getting Help
+## Getting Help
 
 If you have a question, please create a topic in [Discussions](https://github.com/puntWork/node/discussions).
 
