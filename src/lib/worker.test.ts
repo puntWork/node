@@ -4,8 +4,8 @@ import {
   shutdown,
   startUp,
   isTerminating,
+  worker,
 } from './worker'
-import { worker } from './worker'
 
 import Redis from 'ioredis'
 

@@ -1,22 +1,9 @@
-import Redis from 'ioredis'
 import { Message, WorkerOpts } from '../types'
 import Debug from 'debug'
+import connect from '../redis'
 
+const redis = connect()
 let debug = Debug('punt:worker')
-
-const redisUrl = process.env.REDIS_URL || undefined
-
-const redisOpts =
-  process.env.NODE_ENV === 'production'
-    ? {
-        tls: {
-          requestCert: true,
-          rejectUnauthorized: false,
-        },
-      }
-    : {}
-
-export const redis = new Redis(redisUrl, redisOpts)
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CallbackFn = (message: any) => void

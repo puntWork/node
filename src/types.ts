@@ -1,3 +1,5 @@
+import { RedisOptions } from 'ioredis'
+
 export interface Message {
   job: string
   data: unknown
@@ -14,4 +16,9 @@ export interface WorkerOpts {
   group?: string
   ts?: number
   maxRetries?: number
+}
+
+export interface PuntConfig {
+  redisUrl?: string
+  redisOptions?: RedisOptions
 }

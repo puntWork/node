@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import punt from './punt'
+import Punt from './punt'
 
 import Redis from 'ioredis'
 
@@ -10,6 +10,8 @@ afterEach(async () => {
 })
 
 describe('punt', () => {
+  const punt = Punt()
+
   test('enqueuing messages to punt', async () => {
     const uuid = randomUUID()
     const enqueuedMessageId = await punt('testEnqueue', { id: uuid })
@@ -20,8 +22,10 @@ describe('punt', () => {
       0
     )
 
-    const [messageId, [topicLabel, topicName, messageLabel, jsonEncodedMessage]] =
-      message
+    const [
+      messageId,
+      [topicLabel, topicName, messageLabel, jsonEncodedMessage],
+    ] = message
 
     const decodedMessage = JSON.parse(jsonEncodedMessage)
 

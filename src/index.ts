@@ -1,4 +1,4 @@
-import punt from './lib/punt'
+import Punt from './lib/punt'
 export { worker } from './lib/worker'
 
-export default punt
+export default Punt

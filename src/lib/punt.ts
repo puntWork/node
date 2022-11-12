@@ -1,7 +1,8 @@
-import Redis from 'ioredis'
-import { Message } from '../types'
+import { Redis } from 'ioredis'
+import { Message, PuntConfig } from '../types'
+import connect from '../redis'
 
-const redis = new Redis()
+let redis: Redis
 
 const punt = async (job: string, data: unknown): Promise<string> => {
   const message: Message = {
@@ -24,4 +25,20 @@ const punt = async (job: string, data: unknown): Promise<string> => {
   return messageId
 }
 
-export default punt
+/**
+ * Initialize Punt with a Redis connection.
+ *
+ * Usage:
+ *   import Punt from '@punt/node'
+ *   const punt = Punt()
+ *
+ * @param puntConfig an optional config object to override the default Redis connection settings.
+ * @returns the punt function used to enqueue jobs.
+ */
+const Punt = (puntConfig?: PuntConfig) => {
+  redis = connect(puntConfig)
+
+  return punt
+}
+
+export default Punt
