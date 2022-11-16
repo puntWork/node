@@ -56,7 +56,7 @@ npx punt worker [entrypoint] <options>
 
 ### CLI options
 
-- `-t, --ts`: Typescript mode. This option enables the Typescript loader, allowing you to run workers without a transpilation step. This is quite useful in development mode. This option will be automatically applied if your entrypoint is a `.ts` file.
+- `-t, --ts`: Typescript mode. This option enables the Typescript loader, allowing you to run workers without a transpilation step (useful in development mode). This option will be automatically applied if your entrypoint is a `.ts` file.
 
 > 💡 **Important note**
 >
@@ -83,6 +83,33 @@ or
 ```
 npx punt worker entrypoint.js -v
 ```
+
+## Connecting to Redis
+
+Punt recommends setting the `REDIS_URL` environment variable with valid Redis connection string. If you don't set it, Punt will default to `redis://localhost:6379`.
+
+You can use a `rediss://` connection string to connect to a Redis server over TLS.
+
+### Connecting to Heroku Redis
+
+Heroku Redis uses an encrypted connection with a self-signed certificate. To connect to Heroku Redis, you need to set the `REDIS_TLS_REJECT_UNAUTHORIZED` environment variable to `0`.
+
+Alternatively, you can set the `redisOptions` entry in your Punt config file `punt.config.js` to
+
+```js
+// punt.config.js
+
+module.exports = {
+  // ... other configuration
+  redisOptions: {
+    tls: {
+      rejectUnauthorized: false,
+    },
+  },
+}
+```
+
+The config file should not interfere with your development environment, as Punt will ignore the `tls` entry for non-encrypted connections (`redis://`).
 
 ## Getting Help
 

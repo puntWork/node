@@ -7,6 +7,17 @@ const debug = Debug('punt:redis')
 
 let client: Redis.Redis
 
+/**
+ * Connect to Redis and returns a Redis client. Optionally takes a config object. If no config object
+ * is provided, it falls back to:
+ *
+ *   1. Environment variables (REDIS_URL, REDIS_TLS_REJECT_UNAUTHORIZED)
+ *   2. The `punt.config.js` configuration file (redisUrl, redisOptions)
+ *   3. Default values (redis://localhost:6379)
+ *
+ * @param config optional config object
+ * @returns a Redis client
+ */
 const connect = (config?: PuntConfig) => {
   if (client) {
     return client
