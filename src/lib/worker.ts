@@ -161,27 +161,32 @@ interface RetryMonitorArgs {
 export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
   const currentTime = opts.ts ?? Date.now()
 
-  //pull first message from the RetrySet
-  const [jsonEncodedMessage, time] = await redis.zpopmin(
-    '__punt__:__retryset__'
+  // Watch the retry set for changes
+  await redis.watch('__punt__:__retryset__')
+
+  //Check if any messages with a score lower than the current time exist in the retry set
+  const [jsonEncodedMessage] = await redis.zrangebyscore(
+    '__punt__:__retryset__',
+    '-inf',
+    currentTime,
+    'LIMIT',
+    0,
+    1
   )
 
-  // Handling empty sets
-  if (jsonEncodedMessage == null) return
-
-  const timeInt = parseInt(time)
-
-  if (Number.isNaN(timeInt)) {
-    throw new Error(
-      `Fatal: ${time} not a valid timestamp, an integer was expected. The following message was likely lost: ${jsonEncodedMessage}.`
-    )
+  // If no messages are found, return
+  if (jsonEncodedMessage == null) {
+    await redis.unwatch()
+    return
   }
 
-  if (timeInt <= currentTime) {
-    // Adds message back to its queue for reprocessing
-    const message = JSON.parse(jsonEncodedMessage)
+  const message = JSON.parse(jsonEncodedMessage)
 
-    await redis.xadd(
+  // Adds message back to its queue for reprocessing and removes it from
+  // the retry set
+  await redis
+    .multi()
+    .xadd(
       '__punt__:__default__',
       '*',
       'job',
@@ -189,10 +194,8 @@ export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
       'message',
       jsonEncodedMessage
     )
-  } else {
-    // Adds message back to retry set
-    await redis.zadd('__punt__:__retryset__', time, jsonEncodedMessage)
-  }
+    .zrem('__punt__:__retryset__', jsonEncodedMessage)
+    .exec()
 }
 
 export const startUp = async () => {
