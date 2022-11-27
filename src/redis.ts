@@ -91,8 +91,6 @@ export const redisUrl = (): string => {
 
   const config = loadConfiguration()
 
-  console.log('config.redisUrl', config.redisUrl)
-
   return config.redisUrl || 'redis://localhost:6379'
 }
 

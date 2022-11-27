@@ -11,8 +11,6 @@ export const loadConfiguration = (): PuntConfig => {
   const projectRoot = process.cwd()
   let configFromFile: PuntConfig = {}
 
-  console.log(`Reading config file from ${projectRoot}`)
-
   try {
     configFromFile = require(path.join(projectRoot, 'punt.config.js'))
   } catch (error: any) {
