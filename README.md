@@ -10,7 +10,7 @@ Punt is a developer friendly queue for processing background jobs.
 
 ### 1. Setting up your development environment
 
-Punt requires Redis to run. [Here's]() a guide on how to install Redis on the common development systems.
+Punt requires Redis to run. [Here's](https://redis.io/docs/getting-started/installation/) a guide on how to install Redis on the common development systems.
 
 ### 2. Install Punt
 
