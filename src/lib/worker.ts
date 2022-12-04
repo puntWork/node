@@ -15,6 +15,7 @@ interface HandlerMap {
 }
 interface handlersOpts {
   maxRetries?: number
+  retry?: boolean
 }
 
 const handlers: HandlerMap = {}
@@ -23,7 +24,8 @@ export const worker = (
   cb: CallbackFn,
   opts: handlersOpts = {}
 ): void => {
-  const maxRetries = opts.maxRetries ?? 20
+  const retry = opts.retry ?? true
+  const maxRetries = retry ? opts.maxRetries ?? 20 : 0
 
   debug(`Registering callback for ${message} with options ${opts}.`)
 

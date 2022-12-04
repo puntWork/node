@@ -328,20 +328,6 @@ describe('handling errors', () => {
 })
 
 describe('deadlettering messages after retries are exceeded', () => {
-  const message = {
-    data: { id: 'deadletterTest' },
-    retryCount: 2,
-    job: 'deadletterTest',
-    lastAttemptedAt: Date.now() - 8_000,
-    lastError: 'An error occurred',
-  }
-
-  const errorFn = jest.fn(() => {
-    throw new Error('job failed')
-  })
-
-  worker('deadletterTest', errorFn, { maxRetries: 3 })
-
   beforeEach(async () => {
     await redis.xgroup(
       'CREATE',
@@ -350,6 +336,22 @@ describe('deadlettering messages after retries are exceeded', () => {
       '$',
       'MKSTREAM'
     )
+  })
+
+  const errorFn = jest.fn(() => {
+    throw new Error('job failed')
+  })
+
+  test('moves the message to the deadletter stream after retries are exhausted', async () => {
+    const message = {
+      data: { id: 'deadletterTest' },
+      retryCount: 2,
+      job: 'deadletterTest',
+      lastAttemptedAt: Date.now() - 8_000,
+      lastError: 'An error occurred',
+    }
+
+    worker('deadletterTest', errorFn, { maxRetries: 3 })
 
     await redis.xadd(
       '__punt__:__default__',
@@ -359,9 +361,7 @@ describe('deadlettering messages after retries are exceeded', () => {
       'message',
       JSON.stringify(message)
     )
-  })
 
-  test('moves the message to the deadletter stream after retries are exhausted', async () => {
     await listenForMessages({ recovery: false })
 
     const [deadLetters] = await redis.xread(
@@ -385,6 +385,51 @@ describe('deadlettering messages after retries are exceeded', () => {
     const decodedMessage = JSON.parse(jsonEncodedMessage)
 
     expect(decodedMessage.data).toEqual({ id: 'deadletterTest' })
+  })
+
+  test('allow disabling retries completely with the retry option', async () => {
+    const message = {
+      data: { id: 'no-retry-test' },
+      retryCount: 0,
+      job: 'no-retry',
+      lastAttemptedAt: Date.now() - 8_000,
+      lastError: 'An error occurred',
+    }
+
+    worker('no-retry', errorFn, { retry: false })
+
+    await redis.xadd(
+      '__punt__:__default__',
+      '*',
+      'job',
+      'no-retry',
+      'message',
+      JSON.stringify(message)
+    )
+
+    await listenForMessages({ recovery: false })
+
+    const [deadLetters] = await redis.xread(
+      'COUNT',
+      1,
+      'STREAMS',
+      '__punt__:__deadletter__',
+      '0-0'
+    )
+
+    const [
+      _topicName,
+      [
+        [
+          _messageId,
+          [_jobAttrName, _job, _messageAttrName, jsonEncodedMessage],
+        ],
+      ],
+    ] = deadLetters
+
+    const decodedMessage = JSON.parse(jsonEncodedMessage)
+
+    expect(decodedMessage.data).toEqual({ id: 'no-retry-test' })
   })
 })
 
