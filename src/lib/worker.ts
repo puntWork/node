@@ -8,14 +8,29 @@ let debug = Debug('punt:worker')
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CallbackFn = (message: any) => void
 interface HandlerMap {
-  [key: string]: CallbackFn
+  [key: string]: {
+    cb: CallbackFn
+    maxRetries: number
+  }
+}
+interface handlersOpts {
+  maxRetries?: number
 }
 
 const handlers: HandlerMap = {}
+export const worker = (
+  message: string,
+  cb: CallbackFn,
+  opts: handlersOpts = {}
+): void => {
+  const maxRetries = opts.maxRetries ?? 20
 
-export const worker = (message: string, cb: CallbackFn): void => {
-  debug(`Registering callback for ${message}.`)
-  handlers[message] = cb
+  debug(`Registering callback for ${message} with options ${opts}.`)
+
+  handlers[message] = {
+    cb,
+    maxRetries,
+  }
 }
 
 const exponentialBackoff = (
@@ -37,13 +52,17 @@ const deadletter = async (message: Message): Promise<void> => {
   )
 }
 
+interface ErrorHandlerSettings {
+  maxRetries: number
+  ts?: number
+}
+
 export const errorHandler = async (
+  message: Message,
   error: Error,
-  opts: WorkerOpts,
-  message: Message | null
+  settings: ErrorHandlerSettings
 ) => {
-  const ts = opts.ts ?? Date.now()
-  const maxRetries = opts.maxRetries ?? 10
+  const { maxRetries, ts = Date.now() } = settings
 
   if (message == null) return
 
@@ -81,6 +100,7 @@ export const listenForMessages = async (
   const topic = opts.topic ?? '__default__'
   const group = opts.group ?? 'workers'
   const workerId = opts.worker ?? 'worker'
+  const ts = opts.ts ?? Date.now()
 
   let message: Message | null = null
 
@@ -132,19 +152,23 @@ export const listenForMessages = async (
 
   message = JSON.parse(jsonEncodedMessage)
 
-  const handlerFn = handlers[job]
+  if (message == null) {
+    throw new Error('Last message received is unexpectedly empty. Aborting.')
+  }
 
-  if (handlerFn == null) {
+  const handler = handlers[job]
+
+  if (handler == null) {
     throw new Error(`No handler for job ${job}.`)
   }
 
   try {
-    await Promise.resolve(handlerFn.call(null, message))
+    await Promise.resolve(handler.cb.call(null, message))
 
     await redis.xack(`__punt__:${topic}`, group, messageId)
   } catch (error) {
     if (error instanceof Error) {
-      errorHandler(error, opts, message)
+      errorHandler(message, error, { maxRetries: handler.maxRetries, ts })
     } else {
       throw error
     }
@@ -164,7 +188,7 @@ export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
   // Watch the retry set for changes
   await redis.watch('__punt__:__retryset__')
 
-  //Check if any messages with a score lower than the current time exist in the retry set
+  // Check if any messages with a score lower than the current time exist in the retry set
   const [jsonEncodedMessage] = await redis.zrangebyscore(
     '__punt__:__retryset__',
     '-inf',
