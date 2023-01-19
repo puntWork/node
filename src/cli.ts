@@ -1,6 +1,5 @@
-const { Command } = require('commander')
-const { version } = require('./package.json')
-const { run } = require('./dist/worker')
+import { Command } from 'commander'
+import { run } from './worker'
 
 const program = new Command()
 
@@ -9,7 +8,7 @@ program
   .description(
     'punt-cli is a command line tool for managing background workers'
   )
-  .version(version)
+  .version('1.2.1')
 
 program
   .command('worker')
@@ -20,7 +19,7 @@ program
   .action(async (entrypoint, options) => {
     console.log('Worker started with PID:', process.pid)
 
-    if (options.ts || entrypoint.endsWith('.ts')) {
+    if (options.ts || entrypoint.replace(/:.*$/, '').endsWith('.ts')) {
       require('ts-node').register()
     }
 
