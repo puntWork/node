@@ -20,7 +20,8 @@ program
     console.log('Worker started with PID:', process.pid)
 
     if (options.ts || entrypoint.replace(/:.*$/, '').endsWith('.ts')) {
-      require('ts-node').register()
+      const tsNode = await import('ts-node')
+      tsNode.register()
     }
 
     try {

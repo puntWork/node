@@ -4,7 +4,7 @@ import connect from '../redis'
 
 let redis: Redis
 
-const punt = async (job: string, data: unknown): Promise<string> => {
+const punt = async (job: string, data: unknown = {}): Promise<string> => {
   const message: Message = {
     data,
     job,
