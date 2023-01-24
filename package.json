@@ -1,6 +1,6 @@
 {
   "name": "@punt/node",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Punt is a powerful, developer friendly queue for processing background jobs.",
   "scripts": {
     "build": "tsc",

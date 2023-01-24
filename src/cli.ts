@@ -8,7 +8,7 @@ program
   .description(
     'punt-cli is a command line tool for managing background workers'
   )
-  .version('1.2.3')
+  .version('1.2.4')
 
 program
   .command('worker')

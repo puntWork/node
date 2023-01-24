@@ -65,7 +65,7 @@ describe('startUp', () => {
         'job',
         'recoverjob',
         'message',
-        JSON.stringify({ id: 1 })
+        JSON.stringify({ data: { id: 1 } })
       )
     })
 
@@ -90,7 +90,7 @@ describe('startUp', () => {
 })
 
 describe('listenForMessages', () => {
-  const message = { id: 1 }
+  const message = { data: { id: 'message-2' } }
 
   worker('myjob', myfn)
 
@@ -116,7 +116,7 @@ describe('listenForMessages', () => {
   test('calling workers', async () => {
     await listenForMessages({ recovery: false }, { worker: 'worker.1' })
 
-    expect(myfn).toBeCalledWith(message)
+    expect(myfn).toBeCalledWith(message.data)
   })
 
   test('XACKing messages after successful processing', async () => {

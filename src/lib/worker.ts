@@ -165,7 +165,7 @@ export const listenForMessages = async (
   }
 
   try {
-    await Promise.resolve(handler.cb.call(null, message))
+    await Promise.resolve(handler.cb.call(null, message.data))
 
     await redis.xack(`__punt__:${topic}`, group, messageId)
   } catch (error) {
