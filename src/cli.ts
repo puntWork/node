@@ -8,7 +8,7 @@ program
   .description(
     'punt-cli is a command line tool for managing background workers'
   )
-  .version('1.2.2')
+  .version('1.2.3')
 
 program
   .command('worker')
@@ -21,7 +21,7 @@ program
 
     if (options.ts || entrypoint.replace(/:.*$/, '').endsWith('.ts')) {
       const tsNode = await import('ts-node')
-      tsNode.register()
+      tsNode.register({ transpileOnly: true })
     }
 
     try {
