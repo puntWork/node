@@ -180,6 +180,16 @@ describe('handling errors', () => {
     expect(parsedMessage.data).toEqual({ id: 'willFail' })
   })
 
+  test('errored jobs are acked', async () => {
+    await listenForMessages({ recovery: false })
+
+    // If the message was successfully acknowledged by the worker, we won't be able to read it again
+    // below with the xreadgroup call
+    let result = await redis.xpending('__punt__:__default__', 'workers')
+
+    expect(result[0]).toEqual(0)
+  })
+
   test('sets the next execution time as the sorted set score', async () => {
     const currentTimestamp = Date.now()
     const nextExecutionTime = currentTimestamp + 8_000 // increases by 8 seconds

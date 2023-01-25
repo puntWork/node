@@ -4,6 +4,7 @@ import connect from '../redis'
 
 const redis = connect()
 let debug = Debug('punt:worker')
+let logger = console
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CallbackFn = (message: any) => void
@@ -27,7 +28,9 @@ export const worker = (
   const retry = opts.retry ?? true
   const maxRetries = retry ? opts.maxRetries ?? 20 : 0
 
-  debug(`Registering callback for ${message} with options ${opts}.`)
+  debug(
+    `Registering callback for ${message} with options ${JSON.stringify(opts)}.`
+  )
 
   handlers[message] = {
     cb,
@@ -60,6 +63,7 @@ interface ErrorHandlerSettings {
 }
 
 export const errorHandler = async (
+  messageId: string,
   message: Message,
   error: Error,
   settings: ErrorHandlerSettings
@@ -67,6 +71,11 @@ export const errorHandler = async (
   const { maxRetries, ts = Date.now() } = settings
 
   if (message == null) return
+
+  logger.error(
+    `Processing ${message.job} job id=${messageId} failed with error:`,
+    error.message
+  )
 
   const updatedMessage = {
     ...message,
@@ -76,11 +85,23 @@ export const errorHandler = async (
   }
 
   if (updatedMessage.retryCount >= maxRetries) {
+    debug(
+      `The ${message.job} job id=${messageId} has exceeded the maximum number of retries of ${maxRetries}.`
+    )
+
     await deadletter(updatedMessage)
     return
   }
 
   const nextExecution = exponentialBackoff(ts, updatedMessage.retryCount)
+
+  debug(
+    `The ${
+      message.job
+    } job id=${messageId} will be scheduled for retry on ${new Date(
+      nextExecution
+    ).toISOString()} (retry ${updatedMessage.retryCount} out of ${maxRetries})`
+  )
 
   // Push message to retry set
   await redis.zadd(
@@ -150,13 +171,15 @@ export const listenForMessages = async (
   const [messageId, [_jobAttrName, job, _messageAttrName, jsonEncodedMessage]] =
     messages[0]
 
-  debug(`Processing message ID=${messageId} received on topic ${topicName}.`)
-
   message = JSON.parse(jsonEncodedMessage)
 
   if (message == null) {
     throw new Error('Last message received is unexpectedly empty. Aborting.')
   }
+
+  debug(
+    `Processing ${message.job} job with id=${messageId} received on topic ${topicName}: ${jsonEncodedMessage}`
+  )
 
   const handler = handlers[job]
 
@@ -166,15 +189,24 @@ export const listenForMessages = async (
 
   try {
     await Promise.resolve(handler.cb.call(null, message.data))
-
-    await redis.xack(`__punt__:${topic}`, group, messageId)
+    debug(
+      `The ${message.job} job with id=${messageId} received on topic ${topicName} was successfully processed.`
+    )
   } catch (error) {
     if (error instanceof Error) {
-      errorHandler(message, error, { maxRetries: handler.maxRetries, ts })
+      errorHandler(messageId, message, error, {
+        maxRetries: handler.maxRetries,
+        ts,
+      })
     } else {
       throw error
     }
   }
+
+  debug(
+    `Ack-ing ${message.job} job with ID=${messageId} received on topic ${topicName}.`
+  )
+  await redis.xack(`__punt__:${topic}`, group, messageId)
 
   // Returns the id of the successfully processed message
   return messageId
