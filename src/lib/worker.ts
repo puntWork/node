@@ -4,7 +4,7 @@ import connect from '../redis'
 
 const redis = connect()
 let debug = Debug('punt:worker')
-let logger = console
+const logger = console
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CallbackFn = (message: any) => void

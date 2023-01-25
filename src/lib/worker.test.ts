@@ -185,7 +185,7 @@ describe('handling errors', () => {
 
     // If the message was successfully acknowledged by the worker, we won't be able to read it again
     // below with the xreadgroup call
-    let result = await redis.xpending('__punt__:__default__', 'workers')
+    const result = await redis.xpending('__punt__:__default__', 'workers')
 
     expect(result[0]).toEqual(0)
   })
