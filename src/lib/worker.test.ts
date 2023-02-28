@@ -169,7 +169,7 @@ describe('handling errors', () => {
     await listenForMessages({ recovery: false })
 
     const result = await redis.zrange(
-      '__punt__:__retry_set__',
+      '__punt__:__retryset__',
       0,
       -1,
       'WITHSCORES'
@@ -197,7 +197,7 @@ describe('handling errors', () => {
     await listenForMessages({ recovery: false }, { ts: currentTimestamp })
 
     const [_jsonEncodedMessage, score] = await redis.zrange(
-      '__punt__:__retry_set__',
+      '__punt__:__retryset__',
       0,
       -1,
       'WITHSCORES'
@@ -210,7 +210,7 @@ describe('handling errors', () => {
     await listenForMessages({ recovery: false })
 
     const [jsonEncodedMessage] = await redis.zrange(
-      '__punt__:__retry_set__',
+      '__punt__:__retryset__',
       0,
       -1,
       'WITHSCORES'
@@ -226,7 +226,7 @@ describe('handling errors', () => {
     await listenForMessages({ recovery: false }, { ts: currentTimestamp })
 
     const [jsonEncodedMessage] = await redis.zrange(
-      '__punt__:__retry_set__',
+      '__punt__:__retryset__',
       0,
       -1,
       'WITHSCORES'
@@ -241,7 +241,7 @@ describe('handling errors', () => {
     await listenForMessages({ recovery: false })
 
     const [jsonEncodedMessage] = await redis.zrange(
-      '__punt__:__retry_set__',
+      '__punt__:__retryset__',
       0,
       -1,
       'WITHSCORES'

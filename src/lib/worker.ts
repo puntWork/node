@@ -105,7 +105,7 @@ export const errorHandler = async (
 
   // Push message to retry set
   await redis.zadd(
-    '__punt__:__retry_set__',
+    '__punt__:__retryset__',
     nextExecution.toString(),
     JSON.stringify(updatedMessage)
   )
@@ -219,11 +219,16 @@ interface RetryMonitorArgs {
 export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
   const currentTime = opts.ts ?? Date.now()
 
+  // Duplicate the redis connection as the main connection is likely blocked by listenToMessages.
+  const retryConnection = redis.duplicate()
+
   // Watch the retry set for changes
-  await redis.watch('__punt__:__retryset__')
+  await retryConnection.watch('__punt__:__retryset__')
+
+  debug(`[Retry Monitor] Checking for messages to retry at ${currentTime}.`)
 
   // Check if any messages with a score lower than the current time exist in the retry set
-  const [jsonEncodedMessage] = await redis.zrangebyscore(
+  const [jsonEncodedMessage] = await retryConnection.zrangebyscore(
     '__punt__:__retryset__',
     '-inf',
     currentTime,
@@ -234,26 +239,30 @@ export const retryMonitor = async (opts: RetryMonitorArgs = {}) => {
 
   // If no messages are found, return
   if (jsonEncodedMessage == null) {
-    await redis.unwatch()
-    return
+    debug(`[Retry Monitor] No messages found for retrying.`)
+    await retryConnection.unwatch()
+  } else {
+    const message = JSON.parse(jsonEncodedMessage)
+
+    debug(`[Retry Monitor] Retrying job ${jsonEncodedMessage}`)
+
+    // Adds message back to its queue for reprocessing and removes it from
+    // the retry set
+    await retryConnection
+      .multi()
+      .xadd(
+        '__punt__:__default__',
+        '*',
+        'job',
+        message.job,
+        'message',
+        jsonEncodedMessage
+      )
+      .zrem('__punt__:__retryset__', jsonEncodedMessage)
+      .exec()
   }
 
-  const message = JSON.parse(jsonEncodedMessage)
-
-  // Adds message back to its queue for reprocessing and removes it from
-  // the retry set
-  await redis
-    .multi()
-    .xadd(
-      '__punt__:__default__',
-      '*',
-      'job',
-      message.job,
-      'message',
-      jsonEncodedMessage
-    )
-    .zrem('__punt__:__retryset__', jsonEncodedMessage)
-    .exec()
+  retryConnection.disconnect()
 }
 
 export const startUp = async () => {
@@ -299,11 +308,13 @@ const main = async (opts: WorkerOpts = {}) => {
   }
 
   // Run the retryMonitor every 1 sec
-  setInterval(retryMonitor, 1000)
+  const interval = setInterval(() => retryMonitor(), 1000)
 
   while (!isShuttingDown) {
     await listenForMessages({ recovery: false }, opts)
   }
+
+  clearInterval(interval)
 
   redis.disconnect()
 
